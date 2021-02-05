@@ -1,0 +1,4 @@
+/node_modules/
+/sample-data/
+package-lock.json
+README.md

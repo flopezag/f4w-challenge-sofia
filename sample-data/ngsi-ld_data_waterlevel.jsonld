@@ -1,0 +1,39 @@
+{
+    "id": "urn:ngsi-ld:Device:device-001C",
+    "type": "Device",
+    "category": {
+        "type": "Property",
+        "value": [
+            "sensor"
+        ]
+    },
+    "controlledProperty": {
+        "type": "Property",
+        "value": [
+            "fillingLevel"
+        ]
+    },
+    "dateObserved": {
+        "type": "Property",
+        "value": {
+            "@type": "DateTime",
+            "@value": "2019-05-06T06:32:10.000Z"
+        }
+    },
+    "deviceState": {      // para el fillingLevel, quality
+        "type": "Property",
+        "value": "Good"
+    },
+    "status": {          // para el fillingLevel, status
+        "type": "Property",
+        "value": "Normal Level"
+    },
+    "value": {
+        "type": "Property",
+        "value": 0.6,
+        "unitCode": "metros"
+    },
+    "@context": [
+        "https://schema.lab.fiware.org/ld/context"
+    ]
+}

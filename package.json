@@ -1,0 +1,35 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www",
+    "lint": "eslint . --cache --fix",
+    "prettier": "prettier --parser flow --config ./.prettierrc.json --write **/**/*.js  **/*.js *.js",
+    "test": "eslint ."
+  },
+  "engines": {
+    "node": ">=14.15.4",
+    "npm": ">=6.14.11"
+  },
+  "dependencies": {
+    "date-and-time": "^0.14.2",
+    "excel-date-to-js": "^1.0.6",
+    "express": "^4.17.1",
+    "fast-csv": "^4.3.6",
+    "fast-xlsx-reader": "^0.3.1",
+    "got": "^11.8.1",
+    "http-status-codes": "^2.1.4",
+    "mongoose": "^5.11.14",
+    "multer": "^1.4.2",
+    "underscore": "^1.12.0"
+  },
+  "devDependencies": {
+    "ajv": "^7.0.3",
+    "eslint": "^7.5.0",
+    "eslint-config-tamia": "^7.2.5",
+    "eslint-plugin-prettier": "^3.1.4",
+    "memfs": "3.2.0",
+    "prettier": "^2.0.5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+    "id": "urn:ngsi-ld:Device:device-001A",
+    "type": "Device",
+    "category": {
+        "type": "Property",
+        "value": [
+            "sensor"
+        ]
+    },
+    "controlledProperty": {
+        "type": "Property",
+        "value": [
+            "temperature"
+        ]
+    },
+    "dateObserved": {
+        "type": "Property",
+        "value": {
+            "@type": "DateTime",
+            "@value": "2019-05-06T06:32:10.000Z"
+        }
+    },
+    "serialNumber": {
+        "type": "Property",
+        "value": "10078375"
+    },
+    "value": {
+        "type": "Property",
+        "value": 13.269,
+        "unitCode": "grados centigrados"
+    },
+    "placement": {
+        "type": "object",
+        "properties": {
+            "relativePosition": {
+                "type": "string",
+                "value": "Submerged"   // Submerged | CSO
+            }
+        }
+    },
+    "name": {
+        "type": "Property",
+        "value": "PR46LVL"
+    },
+    "@context": [
+        "https://schema.lab.fiware.org/ld/context"
+    ]
+}
