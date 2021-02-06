@@ -83,10 +83,13 @@ function titleCase(str) {
 function createEntitiesFromXlsx(rows) {
     const entities = [];
     const indexes = [];
+    const collator = new Intl.Collator('bg');
 
     // We need to discard the columns not needed
     _.map(config.ignoreColLab, (column) => {
-            indexes.push(rows[0].findIndex(element => element === column))
+            const index = rows[0].findIndex(element => collator.compare(element, column) === 0);
+            if (index !== -1)
+                indexes.push(index)
         }
     )
 
@@ -103,8 +106,8 @@ function createEntitiesFromXlsx(rows) {
     rows = filteredRows
 
     const headerFields = _.map(rows[0], (header) => {
-        const field = titleCase(header);
-        return replacements.includes(field) ? config.replace[field] : field;
+        const esc_header = escape(header);
+        return replacements.includes(esc_header) ? config.replace[esc_header] : titleCase(header);
     });
 
     // skip header
