@@ -7,9 +7,9 @@ const config = {
     },
     replace: {
         'Time': 'dateObserved',
-        '%u0421%u0442%u043E%u0439%u043D%u043E%u0441%u0442': 'level',  // 'Cтойност': 'level'
+        '%u0421%u0442%u043E%u0439%u043D%u043E%u0441%u0442': 'value',  // 'Cтойност': 'level'
         '%u0421%u0442%u0430%u0442%u0443%u0441': 'status',  // 'Cтатус': 'status'
-        '%u041A%u0430%u0447%u0435%u0441%u0442%u0432%u043E': 'quality',  // 'Kачество': 'quality'
+        '%u041A%u0430%u0447%u0435%u0441%u0442%u0432%u043E': 'deviceState',  // 'Kачество': 'quality'
         'Нормално ниво': 'Normal Level',
         'Добро': 'Good',
         'Date Time, GMT+02:00': 'dateObserved',
@@ -25,6 +25,7 @@ const config = {
         "level": "MTR"
     },
     datetime: ['dateObserved'],
+    maximumUpsert: 400,
     relationship: []
 };
 

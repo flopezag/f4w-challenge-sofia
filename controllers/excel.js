@@ -11,6 +11,7 @@ const meanValues = Object.keys(config.mean);
 const unitCode = Object.keys(config.unitCode);
 const Status = require('http-status-codes');
 const { getJsDateFromExcel } = require("excel-date-to-js");
+const date = require('date-and-time');
 
 /**
  * The UnitCode is held in the static data, but need to be sent as
@@ -136,29 +137,36 @@ function createEntitiesFromXlsx(rows) {
             }
         });
 
-        entity.location = {
-            "type": "Address",
+        entity.category = {
+            "type": "Property",
+                "value": [
+                "sensor"
+            ]
+        };
+
+        entity.controlledProperty = {
+            "type": "Property",
+                "value": [
+                "fillingLevel"
+            ]
+        };
+
+        entity.type = 'Device';
+        entity.id = 'urn:ngsi-ld:Device:device-001C';
+
+        const d = date.parse(entity.dateObserved.value, "D.M.YYYY г. HH:mm:ss.SSS ч.");
+
+        entity.dateObserved = {
+            "type": "Property",
             "value": {
-                "type": "areaServed",
-                "value": entity.id.value
+                "@type": "DateTime",
+                "@value": d.toISOString()
             }
         };
 
-        entity.type = 'WaterQualityObserved';
-        entity.id = 'urn:ngsi-ld:WaterQualityObserved:waterqualityobserved:WWTP:' + entity.id.value;
-
-        config.datetime.forEach((datetime) => {
-            if (entity[datetime]) {
-                try {
-                    entity[datetime].value = {
-                        '@type': 'DateTime',
-                        '@value': getJsDateFromExcel(entity[datetime].value).toISOString()
-                    };
-                } catch (e) {
-                    debug(e);
-                }
-            }
-        });
+        entity.value.value = parseFloat(
+            entity.value.value.substring(0, entity.value.value.length - 2).replace(",", ".")
+        );
 
         entity['@context'] = [
             'https://schema.lab.fiware.org/ld/context',
