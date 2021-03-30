@@ -29,7 +29,7 @@ function removeCsvFile(filename) {
 function readCsvFile(filename) {
     const path = __basedir + '/resources/static/assets/uploads/' + filename;
 
-    var temp = filename.split('-')[1].split('_');
+    let temp = filename.split('-')[1].split('_');
 
     temp = {
         "plant": temp[0],
@@ -177,8 +177,11 @@ function createEntitiesFromMeasures(measures) {
  */
 function createContextRequests(entities) {
     const promises = [];
+    const scope = config.scope;
+
     entities.forEach((entitiesAtTimeStamp) => {
         promises.push(Measure.sendAsHTTP(entitiesAtTimeStamp));
+        // wait n minutes to send new data
     });
     return promises;
 }
@@ -202,8 +205,7 @@ const upload = (req, res) => {
         })
         .then((entities) => {
             return createContextRequests(entities);
-        });
-        /*
+        })
         .then(async (promises) => {
             return await Promise.allSettled(promises);
         })
@@ -216,7 +218,6 @@ const upload = (req, res) => {
             return res.status(Status.INTERNAL_SERVER_ERROR).send(err.message);
         });
 
-         */
 };
 
 module.exports = {

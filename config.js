@@ -26,7 +26,8 @@ const config = {
     },
     datetime: ['dateObserved'],
     maximumUpsert: 400,
-    relationship: []
+    relationship: [],
+    scope: 5  // Time in min between two measurements notification to Orion
 };
 
 module.exports = config;

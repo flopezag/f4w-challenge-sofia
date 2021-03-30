@@ -27,7 +27,7 @@
     "value": {
         "type": "Property",
         "value": 13.269,
-        "unitCode": "grados centigrados"
+        "unitCode": "CEL"
     },
     "placement": {
         "type": "object",
