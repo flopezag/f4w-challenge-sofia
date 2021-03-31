@@ -1,0 +1,16 @@
+{
+    "context": [
+         "https://schema.lab.fiware.org/ld/context",
+         "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld"
+    ],
+    "files": "data",
+    "broker": "http://127.0.0.1:1026",
+    "log_level": "INFO",
+    "scope": 1,
+    "temperature": [
+        "10078375_PR46LVL_CSO.csv",
+        "10078381_PR46LVL_SUBMERGED.csv"
+    ],
+    "rain_gauge": "RG24_data_new_USE THIS.csv",
+    "level_meter": "Level meter data.xlsx"
+}
