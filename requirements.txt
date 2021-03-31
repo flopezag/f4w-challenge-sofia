@@ -1,0 +1,5 @@
+# Python3.9 project, create the virtualenv executing
+# virtualenv -ppython3.9 .env
+requests==2.25.1
+pandas==1.2.3
+pytz==2021.1
