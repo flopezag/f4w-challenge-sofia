@@ -1,7 +1,7 @@
 from config.settings import URL_BROKER, SCOPE
 from config.logging_conf import LoggingConf
 from pytz import timezone
-from pandas import read_csv, to_datetime
+from pandas import read_csv, to_datetime, read_excel
 from requests import post
 from logging import error, info, debug
 from time import sleep
@@ -89,7 +89,6 @@ class NGSI(LoggingConf):
         df['DateTime'] = df['Date'] + " " + df['Time']
         df['DateTime'] = to_datetime(df['DateTime'], format='%m/%d/%y %I:%M:%S %p', dayfirst=True, utc=True)
 
-        # 12/1/20;12:00:00 AM;0.0
         # Sort the data by DateTime
         df = df.sort_values(by=['DateTime'])
 
@@ -101,7 +100,7 @@ class NGSI(LoggingConf):
         # Get the last values of the csv file: UPDATE
         last = df.tail(len(df.index) - 1)
 
-        # Iterating over two columns, use `zip`
+        # Iterating over the Dataframe
         try:
             [self.update(date_observed=row.DateTime.to_datetime64(), measure=row.Measure)
              for row in last.itertuples()]
@@ -110,7 +109,65 @@ class NGSI(LoggingConf):
             error("There was a problem parsing the csv data")
 
     def process_level_excel(self, file):
-        print("TBD")
+        # Read content of the file
+        df = read_excel(io=file)
+
+        # Rename the columns name:
+        # Time -> DateTime
+        # Стойност -> Level
+        # Статус -> Status
+        # Качество -> Quality
+        # причина -> a (To be discarded)
+        # статус -> b (To be discarded)
+        # Suppression Type -> c (to be discarded)
+        #
+        #     ignoreColLab: [
+        #         'причина', 'статус', 'Suppression Type', 'Coupler Attached (LGR S/N: 10078375)',
+        #         'Host Connected (LGR S/N: 10078375)', 'End Of File (LGR S/N: 10078375)', '#'
+        #     ],
+        df.columns = ['DateTime', 'Level', 'Status', 'Quality', 'a', 'b', 'c']
+
+        # Ignore columns 'a', 'b', 'c'
+        df = df[['DateTime', 'Level', 'Status', 'Quality']]
+
+        # Need to process the data of each column to have proper values.
+        # Datetime:   const d = date.parse(entity.dateObserved.value, "D.M.YYYY г. HH:mm:ss.SSS ч.");
+        df['DateTime'] = to_datetime(df['DateTime'], format='%d.%m.%Y г. %H:%M:%S.%f ч.', dayfirst=True, utc=True)
+
+        # Level:      entity.value.value.substring(0, entity.value.value.length - 2).replace(",", ".")
+        df['Level'] = df['Level'].str[:4].replace(',', '.', regex=True).astype(float)
+
+        # Status:     'Нормално ниво': 'Normal Level'
+        df.loc[df['Status'] == 'Нормално ниво', 'Status'] = 'Normal Level'
+
+        # Quality:    'Добро': 'Good'
+        df.loc[df['Quality'] == 'Добро', 'Quality'] = 'Good'
+
+        # Sort the data by DateTime
+        df = df.sort_values(by=['DateTime'])
+
+        # First record of a measure will be uploaded as a CREATE,
+        # then other records will be uploaded as a UPDATE
+        row_1 = df[:1]
+        self.create(date_observed=row_1['DateTime'].values[0],
+                    measure=row_1['Level'].values[0],
+                    status=row_1['Status'].values[0],
+                    quality=row_1['Quality'].values[0])
+
+        # Get the last values of the csv file: UPDATE
+        last = df.tail(len(df.index) - 1)
+
+        # Iterating over the Dataframe
+        try:
+            [self.update(date_observed=row.DateTime.to_datetime64(),
+                         measure=row.Level,
+                         status=row_1['Status'].values[0],
+                         quality=row_1['Quality'].values[0])
+
+             for row in last.itertuples()]
+
+        except ValueError as e:
+            error("There was a problem parsing the csv data")
 
     def process_temp_csv(self, file):
         # Read content of the file
@@ -133,46 +190,35 @@ class NGSI(LoggingConf):
         # Get the last values of the csv file: UPDATE
         last = df.tail(len(df.index) - 1)
 
-        # Iterating over two columns, use `zip`
+        # Iterating over the Dataframe
         try:
             [self.update(date_observed=row.DateTime.to_datetime64(), measure=row.Measure)
              for row in last.itertuples()]
         except ValueError as e:
             error("There was a problem parsing the csv data")
 
-    def __get_values__(self, date_observed, measure):
-        # measure = float(measure.strip().replace(",", "."))
-        # date_observed = datetime.strptime(date_observed, '%d.%m.%y %I:%M:%S %p')
-        # date_observed = self.timezone_UTC.localize(date_observed).isoformat()
-
-        return date_observed, measure
-
-    def create(self, date_observed, measure):
-        # date_observed, measure = self.__get_values__(date_observed=date_observed, measure=measure)
-
-        _, data = self.payload.get_data(date_observed=date_observed, measure=measure)
+    def create(self, date_observed, measure, status='', quality=''):
+        _, data = self.payload.get_data(date_observed=date_observed, measure=measure, status=status, quality=quality)
 
         debug(f"Create: Data to be uploaded:\n {data}\n")
 
         # CREATE
         info('Creating ...')
-        # r = post(self.url_entities, json=data, headers=self.headersPost)
-        # info(f'Create Status: [{r.status_code}]')
+        r = post(self.url_entities, json=data, headers=self.headersPost)
+        info(f'Create Status: [{r.status_code}]')
 
         # Wait some time to proceed with the following
         sleep(SCOPE)
 
-    def update(self, date_observed, measure):
-        # date_observed, measure = self.__get_values__(date_observed=date_observed, measure=measure)
-
-        _, data = self.payload.get_data(date_observed=date_observed, measure=measure)
+    def update(self, date_observed, measure, status='', quality=''):
+        _, data = self.payload.get_data(date_observed=date_observed, measure=measure, status=status, quality=quality)
 
         debug(f"Update: Data to be uploaded:\n {data}\n")
 
         # PATCH
         info('Updating ...')
-        # r = post(self.url_entities_op, json=[data], headers=self.headersPost)
-        # info(f'Update Status: [{r.status_code}]')
+        r = post(self.url_entities_op, json=[data], headers=self.headersPost)
+        info(f'Update Status: [{r.status_code}]')
 
         # Wait some seconds to proceed with the following request
         sleep(SCOPE)

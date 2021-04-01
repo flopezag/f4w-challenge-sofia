@@ -14,13 +14,13 @@ class Payload:
         self.name = name
         self.type_class = type_class
 
-    def get_data(self, date_observed, measure):
+    def get_data(self, date_observed, measure, status='', quality=''):
         if self.type_class == 0:
             return self.__temp_data__(date_observed=date_observed, measure=measure)
         elif self.type_class == 1:
             return self.__rain_data__(date_observed=date_observed, measure=measure)
         elif self.type_class == 2:
-            return self.__level_data__(date_observed=date_observed, measure=measure)
+            return self.__level_data__(date_observed=date_observed, measure=measure, status=status, quality=quality)
 
     def __temp_data__(self, date_observed, measure):
         date_observed = {
@@ -141,7 +141,7 @@ class Payload:
 
         return entity_id, data
 
-    def __level_data__(self, date_observed, measure):
+    def __level_data__(self, date_observed, measure, status, quality):
         entity_id = "urn:ngsi-ld:Device:device-001C"
 
         entity_type = "Device"
@@ -168,19 +168,19 @@ class Payload:
                 }
             }
 
-        deviceState = {
+        device_state = {
             "type": "Property",
-            "value": "Good"
+            "value": quality
         }
 
         status = {
             "type": "Property",
-            "value": "Normal Level"
+            "value": status
         }
 
         value = {
             "type": "Property",
-            "value": 0.6,
+            "value": measure,
             "unitCode": "MTR"
         }
 
@@ -190,7 +190,7 @@ class Payload:
             "category": category,
             "controlledProperty": controlled_property,
             "dateObserved": date_observed,
-            "deviceState": deviceState,
+            "deviceState": device_state,
             "status": status,
             "value": value,
             "@context": AT_CONTEXT

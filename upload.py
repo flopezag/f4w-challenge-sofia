@@ -26,6 +26,7 @@ if __name__ == '__main__':
         executor.map(thread_function, range(3))
 
     # Read each file and upload their content into Context Broker
-    ngsi.process(file=FILES[0], file_type=0)
+    # ngsi.process(file=FILES[0], file_type=0)
     # ngsi.process(file=FILES[1], file_type=0)
     # ngsi.process(file=FILES[2], file_type=1)
+    ngsi.process(file=FILES[3], file_type=2)
