@@ -1,7 +1,7 @@
 # Fiware4Water Sofia Challenge
 
 Script to transform .csv data into **ETSI NGSI-LD** payload and upload to a **FIWARE Context Broker**. This python
-script is associated to the corresponding **Fiware4Water Challenge** - South West region in the United Kingdom.
+script is associated to the corresponding **Fiware4Water Challenge** - Sofia.
 
 ## Requisites
 
@@ -23,7 +23,7 @@ The `config` folder includes a `configuration.json` file that contains all the c
 to execute the script. The meaning of each parameter is the following:
 
 - **_context_**, the JSON-LD file that contains the description of the ETSI NGSI-LD context 
-  (e.g. [mlaas-compound.jsonld](https://raw.githubusercontent.com/easy-global-market/ngsild-api-data-models/feature/mlaas-models/mlaas/jsonld-contexts/mlaas-compound.jsonld)).
+  (e.g. [ngsi-ld-core-context.jsonld]("https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld").
 - **_files_**, folder in which the csv files are located (by default `data`). This folder has to be located in the home
   folder of the deployment of this code.
 - **_broker_**, basic url of an instance of the FIWARE Context Broker (e.g. http://127.0.0.1:1026).
@@ -35,12 +35,19 @@ to execute the script. The meaning of each parameter is the following:
   - DEBUG 
   - NOTSET
 - **_scope_**, (Optional) time in seconds to wait after sending a request to the FIWARE Context Broker instance. 
+- temperature, array of cvs files related to water temperature.
+- rain_gauge, csv file with rain gauge meter data.
+- level_meter, xlsx file with the level meter data.
 
 ## Installation
 
 - Clone this repository
   ```bash
-  git clone https://github.com/easy-global-market/f4w-challenges-sww.git
+  git clone https://github.com/flopezag/f4w-challenge-sofia.git
+  ```
+- Change to the python branch
+  ```bash
+  git branch python
   ```
 - Create virtualenv
   ```bash
@@ -50,6 +57,10 @@ to execute the script. The meaning of each parameter is the following:
   ```bash
   source .env/bin/activate
   ```
+    > Note: if you want to finalise the python virtual environment just execute:
+    > ```bash
+    > deactivate
+    > ```
 - Install requirements:
   ```bash
   pip install -r requirements.txt
