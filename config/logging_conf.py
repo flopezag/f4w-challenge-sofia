@@ -1,4 +1,3 @@
-#!/usr/bin/env <PATH_DESKSREMINDER>/env/bin/python
 # -*- coding: utf-8 -*-
 ##
 # Copyright 2019 FIWARE Foundation, e.V.
@@ -35,18 +34,20 @@ class LoggingConf:
         date_format = '%Y-%m-%dT%H:%M:%SZ'
 
         self.sp_logger = getLogger()
-        self.sp_logger.setLevel(loglevel)
-        formatter = Formatter(fmt=format_str, datefmt=date_format)
 
-        fh = FileHandler(filename=log_filename)
-        fh.setLevel(loglevel)
-        fh.setFormatter(formatter)
-        self.sp_logger.addHandler(fh)
+        if not self.sp_logger.handlers:
+            self.sp_logger.setLevel(loglevel)
+            formatter = Formatter(fmt=format_str, datefmt=date_format)
 
-        sh = StreamHandler(stdout)
-        sh.setLevel(ERROR)
-        sh.setFormatter(formatter)
-        self.sp_logger.addHandler(sh)
+            fh = FileHandler(filename=log_filename)
+            fh.setLevel(loglevel)
+            fh.setFormatter(formatter)
+            self.sp_logger.addHandler(fh)
+
+            sh = StreamHandler(stdout)
+            sh.setLevel(ERROR)
+            sh.setFormatter(formatter)
+            self.sp_logger.addHandler(sh)
 
     def close(self):
         self.sp_logger.handlers.clear()
