@@ -7,10 +7,10 @@
     "broker": "http://127.0.0.1:1026",
     "log_level": "INFO",
     "scope": 1,
-    "temperature": [
-        "10078375_PR46LVL_CSO.csv",
-        "10078381_PR46LVL_SUBMERGED.csv"
+    "sensors": [
+        "PR07LSU",
+        "PR11GAR",
+        "PR13DSL"
     ],
-    "rain_gauge": "RG24_data_new_USE THIS.csv",
-    "level_meter": "Level meter data.xlsx"
+    "threads": 1
 }

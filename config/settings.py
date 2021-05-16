@@ -16,9 +16,9 @@
 # under the License.
 ##
 from json import load
-from os import listdir
 from os.path import join, dirname, abspath
 from logging import _nameToLevel as nameToLevel
+from config.files import Files
 
 __author__ = 'fla'
 
@@ -75,18 +75,13 @@ except KeyError as e:
 # Absolute path to the csv files, it is fixed to the relative path of this script
 DATAHOME = join(CODEHOME, DATA_FOLDER)
 
-# List of all csv files to process
-TEMP = configuration["temperature"]
-TEMP = list(map(lambda x: (x, join(DATAHOME, x)), TEMP))
+# List of all folders with sensor data
+sensors = configuration["sensors"]
+files = Files(pwd=DATAHOME, folders=sensors)
+FILES = files.get_files()
 
-RAIN_GAUGE = configuration["rain_gauge"]
-RAIN_GAUGE = (RAIN_GAUGE, join(DATAHOME, RAIN_GAUGE))
+configuration.pop('sensors')
 
-LEVEL_METER = configuration["level_meter"]
-LEVEL_METER = (LEVEL_METER, join(DATAHOME, LEVEL_METER))
-
-FILES = TEMP + [RAIN_GAUGE] + [LEVEL_METER]
-
-configuration.pop('temperature')
-configuration.pop('rain_gauge')
-configuration.pop('level_meter')
+# Number of parallel threads in execution
+THREADS = configuration["threads"]
+configuration.pop('threads')

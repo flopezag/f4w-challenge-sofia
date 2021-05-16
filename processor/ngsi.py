@@ -79,6 +79,7 @@ class NGSI(LoggingConf):
                     0 -> Temperature sensor data (csv)
                     1 -> Rain Gauge sensor data (csv)
                     2 -> Level meter sensor data (xlsx)
+                    3 -> CSO Occurence sensor data (xlsx)
         :return:
         """
         info(f"Starting process of file: {file[0]}")
@@ -94,6 +95,8 @@ class NGSI(LoggingConf):
             self.process_rg_csv(file=file[1])
         elif self.file_type == 2:
             self.process_level_excel(file=file[1])
+        elif self.file_type == 3:
+            self.process_occurrence_excel(file=file[1])
 
     def process_rg_csv(self, file):
         # Read content of the file
@@ -126,6 +129,67 @@ class NGSI(LoggingConf):
             error("There was a problem parsing the csv data")
 
     def process_level_excel(self, file):
+        # Read content of the file
+        df = read_excel(io=file)
+
+        # Rename the columns name:
+        # Time -> DateTime
+        # Стойност -> Level
+        # Статус -> Status
+        # Качество -> Quality
+        # причина -> a (To be discarded)
+        # статус -> b (To be discarded)
+        # Suppression Type -> c (to be discarded)
+        #
+        #     ignoreColLab: [
+        #         'причина', 'статус', 'Suppression Type', 'Coupler Attached (LGR S/N: 10078375)',
+        #         'Host Connected (LGR S/N: 10078375)', 'End Of File (LGR S/N: 10078375)', '#'
+        #     ],
+        df.columns = ['DateTime', 'Level', 'Status', 'Quality', 'a', 'b', 'c']
+
+        # Ignore columns 'a', 'b', 'c'
+        df = df[['DateTime', 'Level', 'Status', 'Quality']]
+
+        # Need to process the data of each column to have proper values.
+        # Datetime:   const d = date.parse(entity.dateObserved.value, "D.M.YYYY г. HH:mm:ss.SSS ч.");
+        df['DateTime'] = to_datetime(df['DateTime'], format='%d.%m.%Y г. %H:%M:%S.%f ч.', dayfirst=True, utc=True)
+
+        # Level:      entity.value.value.substring(0, entity.value.value.length - 2).replace(",", ".")
+        df['Level'] = df['Level'].str[:4].replace(',', '.', regex=True).astype(float)
+
+        # Status:     'Нормално ниво': 'Normal Level'
+        df.loc[df['Status'] == 'Нормално ниво', 'Status'] = 'Normal Level'
+
+        # Quality:    'Добро': 'Good'
+        df.loc[df['Quality'] == 'Добро', 'Quality'] = 'Good'
+
+        # Sort the data by DateTime
+        df = df.sort_values(by=['DateTime'])
+
+        # First record of a measure will be uploaded as a CREATE,
+        # then other records will be uploaded as a UPDATE
+        row_1 = df[:1]
+        self.create(date_observed=row_1['DateTime'].values[0],
+                    measure=row_1['Level'].values[0],
+                    status=row_1['Status'].values[0],
+                    quality=row_1['Quality'].values[0])
+
+        # Get the last values of the csv file: UPDATE
+        last = df.tail(len(df.index) - 1)
+
+        # Iterating over the Dataframe
+        try:
+            [self.update(date_observed=row.DateTime.to_datetime64(),
+                         measure=row.Level,
+                         status=row_1['Status'].values[0],
+                         quality=row_1['Quality'].values[0])
+
+             for row in last.itertuples()]
+
+        except ValueError as e:
+            error("There was a problem parsing the csv data")
+
+    def process_occurrence_excel(self, file):
         # Read content of the file
         df = read_excel(io=file)
 
