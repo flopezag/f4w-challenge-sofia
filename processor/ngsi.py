@@ -23,6 +23,7 @@ from requests import post
 from logging import error, info, debug
 from time import sleep
 from processor.payload import Payload
+from os.path import basename
 
 __author__ = 'Fernando López'
 
@@ -53,22 +54,24 @@ class NGSI(LoggingConf):
         """
         if self.file_type == 0:
             # We get the SN, name and placement data from the name
-            filename = filename.split("_")
-            self.payload.fix_temp_data(name=filename[1],
-                                       serial_number=filename[0],
-                                       placement=filename[2].split(".")[0],
+            filename = basename(filename).split("_")
+            self.payload.fix_temp_data(name=filename[0],
+                                       placement="CSO",
                                        type_class=self.file_type)
         elif self.file_type == 1:
             # We get the name from the filename
-            filename = filename.split("_")
+            filename = basename(filename).split("_")
             self.payload.fix_temp_data(name=filename[0],
-                                       serial_number="",
                                        placement="",
                                        type_class=self.file_type)
         elif self.file_type == 2:
             self.payload.fix_temp_data(name="",
-                                       serial_number="",
                                        placement="",
+                                       type_class=self.file_type)
+        elif self.file_type == 3:
+            filename = basename(filename).split("_")
+            self.payload.fix_temp_data(name=filename[0],
+                                       placement=filename[1],
                                        type_class=self.file_type)
 
     def process(self, file, file_type):
@@ -82,21 +85,21 @@ class NGSI(LoggingConf):
                     3 -> CSO Occurence sensor data (xlsx)
         :return:
         """
-        info(f"Starting process of file: {file[0]}")
+        info(f"Starting process of file: {file}")
 
         self.file_type = file_type
 
         # Set the filename to extract EntityId and Property name
-        self.set_file(filename=file[0])
+        self.set_file(filename=file)
 
         if self.file_type == 0:
-            self.process_temp_csv(file=file[1])
+            self.process_temp_csv(file=file)
         elif self.file_type == 1:
-            self.process_rg_csv(file=file[1])
+            self.process_rg_csv(file=file)
         elif self.file_type == 2:
-            self.process_level_excel(file=file[1])
+            self.process_level_excel(file=file)
         elif self.file_type == 3:
-            self.process_occurrence_excel(file=file[1])
+            self.process_occurrence_excel(file=file)
 
     def process_rg_csv(self, file):
         # Read content of the file
@@ -193,49 +196,21 @@ class NGSI(LoggingConf):
         # Read content of the file
         df = read_excel(io=file)
 
-        # Rename the columns name:
-        # Time -> DateTime
-        # Стойност -> Level
-        # Статус -> Status
-        # Качество -> Quality
-        # причина -> a (To be discarded)
-        # статус -> b (To be discarded)
-        # Suppression Type -> c (to be discarded)
-        #
-        #     ignoreColLab: [
-        #         'причина', 'статус', 'Suppression Type', 'Coupler Attached (LGR S/N: 10078375)',
-        #         'Host Connected (LGR S/N: 10078375)', 'End Of File (LGR S/N: 10078375)', '#'
-        #     ],
-        df.columns = ['DateTime', 'Level', 'Status', 'Quality', 'a', 'b', 'c']
-
-        # Ignore columns 'a', 'b', 'c'
-        df = df[['DateTime', 'Level', 'Status', 'Quality']]
-
         # Need to process the data of each column to have proper values.
-        # Datetime:   const d = date.parse(entity.dateObserved.value, "D.M.YYYY г. HH:mm:ss.SSS ч.");
-        df['DateTime'] = to_datetime(df['DateTime'], format='%d.%m.%Y г. %H:%M:%S.%f ч.', dayfirst=True, utc=True)
-
-        # Level:      entity.value.value.substring(0, entity.value.value.length - 2).replace(",", ".")
-        df['Level'] = df['Level'].str[:4].replace(',', '.', regex=True).astype(float)
-
-        # Status:     'Нормално ниво': 'Normal Level'
-        df.loc[df['Status'] == 'Нормално ниво', 'Status'] = 'Normal Level'
-
-        # Quality:    'Добро': 'Good'
-        df.loc[df['Quality'] == 'Добро', 'Quality'] = 'Good'
+        # Date:   const d = date.parse(entity.dateObserved.value, "D.M.YYYY HH:mm:ss");
+        # Value:  dtype: bool
+        df['Date'] = to_datetime(df['Date'], format='%d.%m.%Y %H:%M:%S', dayfirst=True, utc=True)
 
         # Sort the data by DateTime
-        df = df.sort_values(by=['DateTime'])
+        df = df.sort_values(by=['Date'])
 
         # First record of a measure will be uploaded as a CREATE,
-        # then other records will be uploaded as a UPDATE
+        # then other records will be uploaded as an UPDATE
         row_1 = df[:1]
-        self.create(date_observed=row_1['DateTime'].values[0],
-                    measure=row_1['Level'].values[0],
-                    status=row_1['Status'].values[0],
-                    quality=row_1['Quality'].values[0])
+        self.create(date_observed=row_1['Date'].values[0],
+                    measure=row_1['Value'].values[0])
 
-        # Get the last values of the csv file: UPDATE
+        # Get the last values of the xlsx file: UPDATE
         last = df.tail(len(df.index) - 1)
 
         # Iterating over the Dataframe

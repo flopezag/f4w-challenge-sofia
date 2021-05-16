@@ -20,16 +20,22 @@ from config.settings import AT_CONTEXT
 
 class Payload:
     def __init__(self):
-        self.serial_number = ""
+        self.serial_number = 1
         self.placement = ""
         self.name = ""
         self.type_class = 0
+        self.id = dict()
+        self.id_number = 1
 
-    def fix_temp_data(self, type_class, name="", serial_number="", placement=""):
-        self.serial_number = serial_number
+    def fix_temp_data(self, type_class, name="", placement=""):
         self.placement = placement
         self.name = name
         self.type_class = type_class
+        if (name in self.id) is False:
+            self.id[name] = f'device-{self.id_number:03d}'
+            self.id_number += 1
+
+        print(self.id)
 
     def get_data(self, date_observed, measure, status='', quality=''):
         if self.type_class == 0:
@@ -38,6 +44,59 @@ class Payload:
             return self.__rain_data__(date_observed=date_observed, measure=measure)
         elif self.type_class == 2:
             return self.__level_data__(date_observed=date_observed, measure=measure, status=status, quality=quality)
+        elif self.type_class == 3:
+            return self.__occurrence_data__(date_observed=date_observed, measure=measure)
+
+    def __occurrence_data__(self, date_observed, measure):
+        date_observed = {
+            "type": "Property",
+            "value": {
+                "@type": "DateTime",
+                "@value": date_observed.astype(str)
+            }
+        }
+
+        value = {
+            "type": "Property",
+            "value": measure,
+            "unitCode": "CEL"
+        }
+
+        entity_id = "urn:ngsi-ld:Device:{}".format(self.id[self.name])
+
+        entity_type = "Device"
+
+        category = {
+            "type": "Property",
+            "value": [
+                "sensor"
+            ]
+        }
+
+        controlled_property = {
+            "type": "Property",
+            "value": [
+                "overflow"
+            ]
+        }
+
+        name = {
+            "type": "Property",
+            "value": self.name
+        }
+
+        data = {
+            "id": entity_id,
+            "type": entity_type,
+            "dateObserved": date_observed,
+            "category": category,
+            "controlledProperty": controlled_property,
+            "value": value,
+            "name": name,
+            "@context": AT_CONTEXT
+        }
+
+        return entity_id, data
 
     def __temp_data__(self, date_observed, measure):
         date_observed = {
