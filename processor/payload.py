@@ -60,7 +60,6 @@ class Payload:
         value = {
             "type": "Property",
             "value": bool(measure),
-            "unitCode": "CEL"
         }
 
         entity_id = "urn:ngsi-ld:Device:{}A".format(self.id[self.name])
@@ -138,13 +137,8 @@ class Payload:
         }
 
         placement = {
-            "type": "object",
-            "properties": {
-                "relativePosition": {
-                    "type": "string",
-                    "value": self.placement
-                }
-            }
+            "type": "Property",
+            "value": self.placement
         }
 
         name = {
