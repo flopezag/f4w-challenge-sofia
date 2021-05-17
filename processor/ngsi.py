@@ -100,19 +100,20 @@ class NGSI(LoggingConf):
             # self.process_temp_excel(file=file)
             print("self.process_temp_excel(file=file)")
         elif self.file_type == 1:
-            self.process_rg_csv(file=file)
+            # self.process_rg_csv(file=file)
+            print("self.process_rg_csv(file=file)")
         elif self.file_type == 2:
             self.process_level_excel(file=file)
         elif self.file_type == 3:
-            # self.process_occurrence_excel(file=file)
-            print("self.process_occurrence_excel(file=file)")
+            self.process_occurrence_excel(file=file)
+            # print("self.process_occurrence_excel(file=file)")
 
     def process_rg_csv(self, file):
         # Read content of the file
         df = read_csv(filepath_or_buffer=file, sep=';')
 
         # Rename the columns name
-        df.columns = ['Date', 'Time', "Measure"]
+        df.columns = ['Date', 'Time', 'Measure']
 
         # Filter Measurement (dismiss) with value *
         df = df[df["Measure"] != "*"]
@@ -209,31 +210,54 @@ class NGSI(LoggingConf):
         # Read content of the file
         df = read_excel(io=file)
 
+        # Rename the columns name
+        df.columns = ['DateTime', 'Measure']
+
         # Need to process the data of each column to have proper values.
         # Date:   const d = date.parse(entity.dateObserved.value, "D.M.YYYY HH:mm:ss");
-        df['Date'] = to_datetime(df['Date'], format='%d.%m.%Y %H:%M:%S', dayfirst=True, utc=True)
+        df['DateTime'] = to_datetime(df['DateTime'], format='%d.%m.%Y %H:%M:%S', dayfirst=True, utc=True)
 
         # Sort the data by DateTime
-        df = df.sort_values(by=['Date'])
+        df = df.sort_values(by=['DateTime'])
+
+        # Iterating over the Dataframe
+        length = df.shape[0]
+        iterations = length // self.max_entities_upsert
+
+        try:
+            for i in range(0, iterations):
+                index_from = self.max_entities_upsert * i
+                index_to = index_from + self.max_entities_upsert
+                sub_last = df.iloc[index_from:index_to]
+                self.upsert(df=sub_last)
+
+            rest_iterations = length % self.max_entities_upsert
+            if rest_iterations > 0:
+                index_from = self.max_entities_upsert * iterations
+                index_to = index_from + rest_iterations
+                sub_last = df.iloc[index_from:index_to]
+                self.upsert(df=sub_last)
+        except ValueError as e:
+            error("There was a problem parsing the excel data")
 
         # First record of a measure will be uploaded as a CREATE,
         # then other records will be uploaded as an UPDATE
-        row_1 = df[:1]
-        self.create(date_observed=row_1['Date'].values[0],
-                    measure=row_1['Value'].values[0])
+        #row_1 = df[:1]
+        #self.create(date_observed=row_1['Date'].values[0],
+        #            measure=row_1['Value'].values[0])
 
         # Get the last values of the xlsx file: UPDATE
-        last = df.tail(len(df.index) - 1)
+        #last = df.tail(len(df.index) - 1)
 
         # Iterating over the Dataframe
-        try:
-            [self.update(date_observed=row.Date.to_datetime64(),
-                         measure=row.Value)
+        #try:
+        #    [self.update(date_observed=row.Date.to_datetime64(),
+        #                 measure=row.Value)
+        #
+        #     for row in last.itertuples()]
 
-             for row in last.itertuples()]
-
-        except ValueError as e:
-            error("There was a problem parsing the csv data")
+        #except ValueError as e:
+        #    error("There was a problem parsing the csv data")
 
     def process_temp_excel(self, file):
         # Read content of the file
