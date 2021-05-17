@@ -1,0 +1,37 @@
+{
+  "id": "urn:ngsi-ld:Device:10078399",
+  "type": "Device",
+  "observedAt": "2021-01-30T00:04:43.000000000",
+  "category": {
+    "type": "Property",
+    "value": [
+      "sensor"
+    ]
+  },
+  "controlledProperty": {
+    "type": "Property",
+    "value": [
+      "temperature"
+    ]
+  },
+  "serialNumber": {
+    "type": "Property",
+    "value": 10078399
+  },
+  "value": {
+    "type": "Property",
+    "value": 7.682,
+    "unitCode": "CEL"
+  },
+  "placement": {
+    "type": "Property",
+    "value": "CSO"
+  },
+  "name": {
+    "type": "Property",
+    "value": "PR07LSU"
+  },
+  "@context": [
+    "https://smartdatamodels.org/context.jsonld"
+  ]
+}

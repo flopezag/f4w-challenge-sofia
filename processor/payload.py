@@ -99,13 +99,7 @@ class Payload:
         return entity_id, data
 
     def __temp_data__(self, date_observed, measure):
-        date_observed = {
-            "type": "Property",
-            "value": {
-                "@type": "DateTime",
-                "@value": str(date_observed.astype(str))
-            }
-        }
+        observedAt = str(date_observed.astype(str))
 
         value = {
             "type": "Property",
@@ -149,7 +143,7 @@ class Payload:
         data = {
             "id": entity_id,
             "type": entity_type,
-            "dateObserved": date_observed,
+            "observedAt": observedAt,
             "category": category,
             "controlledProperty": controlled_property,
             "serialNumber": serial_number,

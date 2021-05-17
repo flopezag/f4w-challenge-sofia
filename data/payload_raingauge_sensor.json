@@ -1,0 +1,35 @@
+{
+  "id": "urn:ngsi-ld:Device:RG10",
+  "type": "Device",
+  "category": {
+    "type": "Property",
+    "value": [
+      "sensor"
+    ]
+  },
+  "controlledProperty": {
+    "type": "Property",
+    "value": [
+      "precipitation"
+    ]
+  },
+  "dateObserved": {
+    "type": "Property",
+    "value": {
+      "@type": "DateTime",
+      "@value": "2021-01-01T00:00:00.000000000"
+    }
+  },
+  "value": {
+    "type": "Property",
+    "value": 0.0,
+    "unitCode": "H67"
+  },
+  "name": {
+    "type": "Property",
+    "value": "RG10"
+  },
+  "@context": [
+    "https://smartdatamodels.org/context.jsonld"
+  ]
+}

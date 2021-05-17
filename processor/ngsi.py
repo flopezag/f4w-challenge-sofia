@@ -86,8 +86,8 @@ class NGSI(LoggingConf):
                     0 -> Temperature sensor data (xlsx)
                     1 -> Rain Gauge sensor data (csv)
                     2 -> Level meter sensor data (xlsx)
-                    3 -> CSO Occurence sensor data (xlsx)
-        :return:
+                    3 -> CSO Occurrence sensor data (xlsx)
+        :return: nothing
         """
         info(f"Starting process of file: {file}")
 
@@ -96,18 +96,14 @@ class NGSI(LoggingConf):
         # Set the filename to extract EntityId and Property name
         self.set_file(filename=file)
 
-        # TODO: Temp sensor fails -> object type in placement property not allowed
         if self.file_type == 0:
             self.process_temp_excel(file=file)
-            # print("self.process_temp_excel(file=file)")
         elif self.file_type == 1:
-            # self.process_rg_csv(file=file)
-            print("self.process_rg_csv(file=file)")
+            self.process_rg_csv(file=file)
         elif self.file_type == 2:
             self.process_level_excel(file=file)
         elif self.file_type == 3:
-            # self.process_occurrence_excel(file=file)
-            print("self.process_occurrence_excel(file=file)")
+            self.process_occurrence_excel(file=file)
 
     def process_rg_csv(self, file):
         # Read content of the file

@@ -1,0 +1,34 @@
+{
+  "id": "urn:ngsi-ld:Device:device-001A",
+  "type": "Device",
+  "dateObserved": {
+    "type": "Property",
+    "value": {
+      "@type": "DateTime",
+      "@value": "2020-11-05T10:35:16.000000000"
+    }
+  },
+  "category": {
+    "type": "Property",
+    "value": [
+      "sensor"
+    ]
+  },
+  "controlledProperty": {
+    "type": "Property",
+    "value": [
+      "overflow"
+    ]
+  },
+  "value": {
+    "type": "Property",
+    "value": True
+  },
+  "name": {
+    "type": "Property",
+    "value": "PR07LSU"
+  },
+  "@context": [
+    "https://smartdatamodels.org/context.jsonld"
+  ]
+}
