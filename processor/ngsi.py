@@ -41,10 +41,13 @@ class NGSI(LoggingConf):
 
         self.url_entities = URL_BROKER + '/ngsi-ld/v1/entities'
         self.url_entities_op = URL_BROKER + '/ngsi-ld/v1/entityOperations/update'
+        self.url_upsert = URL_BROKER + '/ngsi-ld/v1/entityOperations/upsert'
 
         self.timezone_UTC = timezone('UTC')
         self.file_type = 0
         self.payload = Payload()
+
+        self.max_entities_upsert = 200
 
     def set_file(self, filename):
         """
@@ -92,14 +95,17 @@ class NGSI(LoggingConf):
         # Set the filename to extract EntityId and Property name
         self.set_file(filename=file)
 
+        # TODO: Temp sensor fails -> object type in placement property not allowed
         if self.file_type == 0:
-            self.process_temp_csv(file=file)
+            # self.process_temp_excel(file=file)
+            print("self.process_temp_excel(file=file)")
         elif self.file_type == 1:
             self.process_rg_csv(file=file)
         elif self.file_type == 2:
             self.process_level_excel(file=file)
         elif self.file_type == 3:
-            self.process_occurrence_excel(file=file)
+            # self.process_occurrence_excel(file=file)
+            print("self.process_occurrence_excel(file=file)")
 
     def process_rg_csv(self, file):
         # Read content of the file
@@ -107,6 +113,9 @@ class NGSI(LoggingConf):
 
         # Rename the columns name
         df.columns = ['Date', 'Time', "Measure"]
+
+        # Filter Measurement (dismiss) with value *
+        df = df[df["Measure"] != "*"]
 
         # Create a column with Date + Time and transform to datetime
         df['DateTime'] = df['Date'] + " " + df['Time']
@@ -117,13 +126,25 @@ class NGSI(LoggingConf):
 
         # First record of a measure will be uploaded as a CREATE,
         # then other records will be uploaded as a UPDATE
-        row_1 = df[:1]
-        self.create(date_observed=row_1['DateTime'].values[0], measure=row_1['Measure'].values[0])
+        #row_1 = df[:1]
+        #self.create(date_observed=row_1['DateTime'].values[0], measure=row_1['Measure'].values[0])
 
         # Get the last values of the csv file: UPDATE
-        last = df.tail(len(df.index) - 1)
+        #last = df.tail(len(df.index) - 1)
 
         # Iterating over the Dataframe
+        length = df.shape[0]  # last.shape[0]
+        iterations = length // 100
+
+        for i in range(0, iterations):
+            sub_last = df.iloc[100*i:100*i+100]  # last.iloc[100*i:100*i+100]
+            self.upsert(df=sub_last)
+
+        rest_iterations = length % 100
+        if rest_iterations > 0:
+            sub_last = df.iloc[100*iterations:100*iterations+rest_iterations]  # last.iloc[100*i:100*i+rest_iterations]
+            self.upsert(df=sub_last)
+
         try:
             [self.update(date_observed=row.DateTime.to_datetime64(), measure=row.Measure)
              for row in last.itertuples()]
@@ -198,7 +219,6 @@ class NGSI(LoggingConf):
 
         # Need to process the data of each column to have proper values.
         # Date:   const d = date.parse(entity.dateObserved.value, "D.M.YYYY HH:mm:ss");
-        # Value:  dtype: bool
         df['Date'] = to_datetime(df['Date'], format='%d.%m.%Y %H:%M:%S', dayfirst=True, utc=True)
 
         # Sort the data by DateTime
@@ -215,46 +235,54 @@ class NGSI(LoggingConf):
 
         # Iterating over the Dataframe
         try:
-            [self.update(date_observed=row.DateTime.to_datetime64(),
-                         measure=row.Level,
-                         status=row_1['Status'].values[0],
-                         quality=row_1['Quality'].values[0])
+            [self.update(date_observed=row.Date.to_datetime64(),
+                         measure=row.Value)
 
              for row in last.itertuples()]
 
         except ValueError as e:
             error("There was a problem parsing the csv data")
 
-    def process_temp_csv(self, file):
+    def process_temp_excel(self, file):
         # Read content of the file
-        df = read_csv(filepath_or_buffer=file, sep=',', skiprows=1, usecols=[0, 1, 2])
+        df = read_excel(io=file)
 
-        # Rename the columns name
-        df.columns = ['#', 'DateTime', "Measure"]
+        # Ignore columns 'a', 'b', 'c'
+        df = df[['Device S/N', 'Date', 'Temperature Value ᵒC']]
 
-        # Create a column with Date + Time and transform to datetime
-        df['DateTime'] = to_datetime(df['DateTime'], format='%m.%d.%y %I:%M:%S %p', dayfirst=True, utc=True)
+        # Need to process the data of each column to have proper values.
+        # Date:   const d = date.parse(entity.dateObserved.value, "D.M.YYYY HH:mm:ss");
+        df['Date'] = to_datetime(df['Date'], format='%Y-%m-%dT%H:%M:%S', dayfirst=True, utc=True)
 
         # Sort the data by DateTime OJO THERE IS A PROBLEM HERE... mm-dd-yy
-        df = df.sort_values(by=['DateTime'])
+        df = df.sort_values(by=['Date'])
 
         # First record of a measure will be uploaded as a CREATE,
         # then other records will be uploaded as a UPDATE
         row_1 = df[:1]
-        self.create(date_observed=row_1.DateTime.values[0], measure=row_1.Measure.values[0])
+        self.create(date_observed=row_1['Date'].values[0],
+                    measure=row_1['Temperature Value ᵒC'].values[0],
+                    sn=row_1['Device S/N'].values[0])
 
         # Get the last values of the csv file: UPDATE
         last = df.tail(len(df.index) - 1)
 
         # Iterating over the Dataframe
         try:
-            [self.update(date_observed=row.DateTime.to_datetime64(), measure=row.Measure)
+            [self.update(date_observed=row['Date'].to_datetime64(),
+                         measure=row['Temperature Value ᵒC'],
+                         sn=row['Device S/N'])
+
              for row in last.itertuples()]
         except ValueError as e:
             error("There was a problem parsing the csv data")
 
-    def create(self, date_observed, measure, status='', quality=''):
-        _, data = self.payload.get_data(date_observed=date_observed, measure=measure, status=status, quality=quality)
+    def create(self, date_observed, measure, status='', quality='', sn=''):
+        _, data = self.payload.get_data(date_observed=date_observed,
+                                        measure=measure,
+                                        status=status,
+                                        quality=quality,
+                                        sn=sn)
 
         debug(f"Create: Data to be uploaded:\n {data}\n")
 
@@ -274,6 +302,26 @@ class NGSI(LoggingConf):
         # PATCH
         info('Updating ...')
         r = post(self.url_entities_op, json=[data], headers=self.headersPost)
+        info(f'Update Status: [{r.status_code}]')
+
+        # Wait some seconds to proceed with the following request
+        sleep(SCOPE)
+
+    def upsert(self, df):
+        data = list()
+
+        for row in df.itertuples():
+            _, aux = self.payload.get_data(date_observed=row.DateTime.to_datetime64(),
+                                           measure=row.Measure,
+                                           status="",
+                                           quality="")
+            data.append(aux)
+
+        debug(f"Upsert: Data to be uploaded:\n {len(data)}\n")
+
+        # POST
+        info('Updating ...')
+        r = post(self.url_upsert, json=data, headers=self.headersPost)
         info(f'Update Status: [{r.status_code}]')
 
         # Wait some seconds to proceed with the following request

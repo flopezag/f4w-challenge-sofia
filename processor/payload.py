@@ -37,8 +37,9 @@ class Payload:
 
         print(self.id)
 
-    def get_data(self, date_observed, measure, status='', quality=''):
+    def get_data(self, date_observed, measure, status='', quality='', sn=''):
         if self.type_class == 0:
+            self.serial_number = int(sn)
             return self.__temp_data__(date_observed=date_observed, measure=measure)
         elif self.type_class == 1:
             return self.__rain_data__(date_observed=date_observed, measure=measure)
@@ -52,17 +53,17 @@ class Payload:
             "type": "Property",
             "value": {
                 "@type": "DateTime",
-                "@value": date_observed.astype(str)
+                "@value": str(date_observed.astype(str))
             }
         }
 
         value = {
             "type": "Property",
-            "value": measure,
+            "value": bool(measure),
             "unitCode": "CEL"
         }
 
-        entity_id = "urn:ngsi-ld:Device:{}".format(self.id[self.name])
+        entity_id = "urn:ngsi-ld:Device:{}A".format(self.id[self.name])
 
         entity_type = "Device"
 
@@ -103,13 +104,13 @@ class Payload:
             "type": "Property",
             "value": {
                 "@type": "DateTime",
-                "@value": date_observed.astype(str)
+                "@value": str(date_observed.astype(str))
             }
         }
 
         value = {
             "type": "Property",
-            "value": measure,
+            "value": float(measure),
             "unitCode": "CEL"
         }
 
@@ -189,13 +190,13 @@ class Payload:
             "type": "Property",
             "value": {
                 "@type": "DateTime",
-                "@value": date_observed.astype(str)
+                "@value": str(date_observed.astype(str))
             }
         }
 
         value = {
             "type": "Property",
-            "value": measure,
+            "value": float(measure),
             "unitCode": "H67"
         }
 
