@@ -13,7 +13,7 @@
       "precipitation"
     ]
   },
-  "dateObserved": {
+  "dateCreated": {
     "type": "Property",
     "value": {
       "@type": "DateTime",

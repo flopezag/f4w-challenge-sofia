@@ -29,6 +29,6 @@ class ThreadMgmt(LoggingConf):
         self.ngsi = NGSI(loglevel=LOGLEVEL)
 
     def thread_function(self, data):
-        info("Thread %s: starting", data[0][0])
+        info("Thread %s: starting", data[0])
         self.ngsi.process(file=data[0], file_type=data[1])
-        info("Thread %s: finishing", data[0][0])
+        info("Thread %s: finishing", data[0])

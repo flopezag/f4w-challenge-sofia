@@ -35,19 +35,18 @@ class LoggingConf:
 
         self.sp_logger = getLogger()
 
-        if not self.sp_logger.handlers:
-            self.sp_logger.setLevel(loglevel)
-            formatter = Formatter(fmt=format_str, datefmt=date_format)
+        self.sp_logger.setLevel(loglevel)
+        formatter = Formatter(fmt=format_str, datefmt=date_format)
 
-            fh = FileHandler(filename=log_filename)
-            fh.setLevel(loglevel)
-            fh.setFormatter(formatter)
-            self.sp_logger.addHandler(fh)
+        fh = FileHandler(filename=log_filename)
+        fh.setLevel(loglevel)
+        fh.setFormatter(formatter)
+        self.sp_logger.addHandler(fh)
 
-            sh = StreamHandler(stdout)
-            sh.setLevel(ERROR)
-            sh.setFormatter(formatter)
-            self.sp_logger.addHandler(sh)
+        sh = StreamHandler(stdout)
+        sh.setLevel(ERROR)
+        sh.setFormatter(formatter)
+        self.sp_logger.addHandler(sh)
 
     def close(self):
         self.sp_logger.handlers.clear()

@@ -45,7 +45,7 @@ class NGSI(LoggingConf):
 
         self.timezone_UTC = timezone('UTC')
         self.file_type = 0
-        self.payload = Payload()
+        self.payload = Payload(loglevel)
 
         # TODO: This should be configured in configuration.json file
         self.max_entities_upsert = 200
@@ -273,26 +273,6 @@ class NGSI(LoggingConf):
                 self.upsert(df=sub_last)
         except ValueError as e:
             error("There was a problem parsing the excel data")
-
-        # # First record of a measure will be uploaded as a CREATE,
-        # # then other records will be uploaded as a UPDATE
-        # row_1 = df[:1]
-        # self.create(date_observed=row_1['Date'].values[0],
-        #             measure=row_1['Temperature Value ᵒC'].values[0],
-        #             sn=row_1['Device S/N'].values[0])
-        #
-        # # Get the last values of the csv file: UPDATE
-        # last = df.tail(len(df.index) - 1)
-        #
-        # # Iterating over the Dataframe
-        # try:
-        #     [self.update(date_observed=row['Date'].to_datetime64(),
-        #                  measure=row['Temperature Value ᵒC'],
-        #                  sn=row['Device S/N'])
-        #
-        #      for row in last.itertuples()]
-        # except ValueError as e:
-        #     error("There was a problem parsing the csv data")
 
     def create(self, date_observed, measure, status='', quality='', sn=''):
         _, data = self.payload.get_data(date_observed=date_observed,

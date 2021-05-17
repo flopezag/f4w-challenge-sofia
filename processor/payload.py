@@ -16,10 +16,14 @@
 # under the License.
 ##
 from config.settings import AT_CONTEXT
+from config.logging_conf import LoggingConf
+from logging import info
+from json import dumps
 
 
-class Payload:
-    def __init__(self):
+class Payload(LoggingConf):
+    def __init__(self, loglevel):
+        super(Payload, self).__init__(loglevel=loglevel, log_file='f4w-challenge-sofia.log')
         self.serial_number = 1
         self.placement = ""
         self.name = ""
@@ -35,7 +39,7 @@ class Payload:
             self.id[name] = f'device-{self.id_number:03d}'
             self.id_number += 1
 
-        print(self.id)
+        info("self.id: {}".format(self.id))
 
     def get_data(self, date_observed, measure, status='', quality='', sn=''):
         if self.type_class == 0:
@@ -49,7 +53,7 @@ class Payload:
             return self.__occurrence_data__(date_observed=date_observed, measure=measure)
 
     def __occurrence_data__(self, date_observed, measure):
-        date_observed = {
+        date_created = {
             "type": "Property",
             "value": {
                 "@type": "DateTime",
@@ -59,8 +63,9 @@ class Payload:
 
         value = {
             "type": "Property",
-            "value": bool(measure),
+            "value": bool(measure)
         }
+        value = dumps(value)
 
         entity_id = "urn:ngsi-ld:Device:{}A".format(self.id[self.name])
 
@@ -88,7 +93,7 @@ class Payload:
         data = {
             "id": entity_id,
             "type": entity_type,
-            "dateObserved": date_observed,
+            "dateCreated": date_created,
             "category": category,
             "controlledProperty": controlled_property,
             "value": value,
@@ -99,7 +104,13 @@ class Payload:
         return entity_id, data
 
     def __temp_data__(self, date_observed, measure):
-        observedAt = str(date_observed.astype(str))
+        date_created = {
+            "type": "Property",
+            "value": {
+                "@type": "DateTime",
+                "@value": str(date_observed.astype(str))
+            }
+        }
 
         value = {
             "type": "Property",
@@ -143,7 +154,7 @@ class Payload:
         data = {
             "id": entity_id,
             "type": entity_type,
-            "observedAt": observedAt,
+            "dateCreated": date_created,
             "category": category,
             "controlledProperty": controlled_property,
             "serialNumber": serial_number,
@@ -174,7 +185,7 @@ class Payload:
             ]
         }
 
-        date_observed = {
+        date_created = {
             "type": "Property",
             "value": {
                 "@type": "DateTime",
@@ -198,7 +209,7 @@ class Payload:
             "type": entity_type,
             "category": category,
             "controlledProperty": controlled_property,
-            "dateObserved": date_observed,
+            "dateCreated": date_created,
             "value": value,
             "name": name,
             "@context": AT_CONTEXT
@@ -225,11 +236,11 @@ class Payload:
             ]
         }
 
-        date_observed = {
+        date_created = {
                 "type": "Property",
                 "value": {
                     "@type": "DateTime",
-                    "@value": date_observed.astype(str)
+                    "@value": str(date_observed.astype(str))
                 }
             }
 
@@ -254,7 +265,7 @@ class Payload:
             "type": entity_type,
             "category": category,
             "controlledProperty": controlled_property,
-            "dateObserved": date_observed,
+            "dateCreated": date_created,
             "deviceState": device_state,
             "status": status,
             "value": value,

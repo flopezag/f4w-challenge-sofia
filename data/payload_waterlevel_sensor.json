@@ -13,18 +13,18 @@
             "fillingLevel"
         ]
     },
-    "dateObserved": {
+    "dateCreated": {
         "type": "Property",
         "value": {
             "@type": "DateTime",
             "@value": "2019-05-06T06:32:10.000Z"
         }
     },
-    "deviceState": {      // para el fillingLevel, quality
+    "deviceState": {
         "type": "Property",
         "value": "Good"
     },
-    "status": {          // para el fillingLevel, status
+    "status": {
         "type": "Property",
         "value": "Normal Level"
     },

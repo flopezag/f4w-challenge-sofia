@@ -38,11 +38,8 @@ if __name__ == '__main__':
         info("Parallel execution")
         thread = ThreadMgmt(loglevel=LOGLEVEL)
 
-        sensors_data = [(FILES[0], 0), (FILES[1], 0), (FILES[2], 1), (FILES[3], 2)]
-
-        # Multi-thread code to send at the same time measurements from 2 temp sensors (0, 1) type 0,
-        # 1 rain gauge (2) type 1, and 1 level meter (3) type 2
+        # Multi-thread code
         with ThreadPoolExecutor(max_workers=THREADS) as executor:
-            executor.map(thread.thread_function, sensors_data)
+            executor.map(thread.thread_function, FILES)
     else:
         raise Exception("[Configuration Error] Threads number must be bigger than 0")

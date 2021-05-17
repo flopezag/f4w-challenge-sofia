@@ -1,7 +1,13 @@
 {
   "id": "urn:ngsi-ld:Device:10078399",
   "type": "Device",
-  "observedAt": "2021-01-30T00:04:43.000000000",
+  "dateCreated": {
+    "type": "Property",
+    "value": {
+      "@type": "DateTime",
+      "@value": "2021-01-30T00:04:43.000000000"
+    }
+  },
   "category": {
     "type": "Property",
     "value": [

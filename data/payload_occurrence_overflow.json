@@ -1,7 +1,7 @@
 {
   "id": "urn:ngsi-ld:Device:device-001A",
   "type": "Device",
-  "dateObserved": {
+  "dateCreated": {
     "type": "Property",
     "value": {
       "@type": "DateTime",
@@ -22,7 +22,7 @@
   },
   "value": {
     "type": "Property",
-    "value": True
+    "value": true
   },
   "name": {
     "type": "Property",
