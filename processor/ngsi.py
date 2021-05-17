@@ -30,7 +30,7 @@ __author__ = 'Fernando López'
 
 class NGSI(LoggingConf):
     def __init__(self, loglevel):
-        super(NGSI, self).__init__(loglevel=loglevel, log_file='f4w-challenge-milan.log')
+        super(NGSI, self).__init__(loglevel=loglevel, log_file='f4w-challenge-sofia.log')
 
         self.entityId = ""
         self.propertyName = ""
@@ -124,31 +124,23 @@ class NGSI(LoggingConf):
         # Sort the data by DateTime
         df = df.sort_values(by=['DateTime'])
 
-        # First record of a measure will be uploaded as a CREATE,
-        # then other records will be uploaded as a UPDATE
-        #row_1 = df[:1]
-        #self.create(date_observed=row_1['DateTime'].values[0], measure=row_1['Measure'].values[0])
-
-        # Get the last values of the csv file: UPDATE
-        #last = df.tail(len(df.index) - 1)
-
         # Iterating over the Dataframe
-        length = df.shape[0]  # last.shape[0]
-        iterations = length // 100
-
-        for i in range(0, iterations):
-            sub_last = df.iloc[100*i:100*i+100]  # last.iloc[100*i:100*i+100]
-            self.upsert(df=sub_last)
-
-        rest_iterations = length % 100
-        if rest_iterations > 0:
-            sub_last = df.iloc[100*iterations:100*iterations+rest_iterations]  # last.iloc[100*i:100*i+rest_iterations]
-            self.upsert(df=sub_last)
+        length = df.shape[0]
+        iterations = length // self.max_entities_upsert
 
         try:
-            [self.update(date_observed=row.DateTime.to_datetime64(), measure=row.Measure)
-             for row in last.itertuples()]
+            for i in range(0, iterations):
+                index_from = self.max_entities_upsert * i
+                index_to = index_from + self.max_entities_upsert
+                sub_last = df.iloc[index_from:index_to]
+                self.upsert(df=sub_last)
 
+            rest_iterations = length % self.max_entities_upsert
+            if rest_iterations > 0:
+                index_from = self.max_entities_upsert * iterations
+                index_to = index_from + rest_iterations
+                sub_last = df.iloc[index_from:index_to]
+                self.upsert(df=sub_last)
         except ValueError as e:
             error("There was a problem parsing the csv data")
 

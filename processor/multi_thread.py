@@ -25,7 +25,7 @@ import time
 
 class ThreadMgmt(LoggingConf):
     def __init__(self, loglevel):
-        super(ThreadMgmt, self).__init__(loglevel=loglevel, log_file='f4w-challenge-milan.log')
+        super(ThreadMgmt, self).__init__(loglevel=loglevel, log_file='f4w-challenge-sofia.log')
         self.ngsi = NGSI(loglevel=LOGLEVEL)
 
     def thread_function(self, data):
